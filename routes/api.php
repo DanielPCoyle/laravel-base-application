@@ -16,3 +16,13 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/{entity}', 'BaseController@get')->name('get');
+
+Route::get('/{entity}/{id}', 'BaseController@getSingle')->name('get_single'); 
+
+Route::post('/{entity}', 'BaseController@post')->name('post'); 
+
+Route::put('/{entity}/{id}', 'BaseController@put')->name('put'); 
+
+Route::delete('/{entity}/{id}', 'BaseController@delete')->name('delete'); 

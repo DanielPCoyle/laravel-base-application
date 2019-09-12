@@ -18,7 +18,7 @@ class BaseController extends Controller
 
     public function __construct(Request $request){
         $path = explode("/",trim($request->getPathInfo(),"/"));
-        $this->query = new QueryService($request,$path[0]);
+        $this->query = new QueryService($request,$path[1]);
     }
 
     public function get($entity,Request $request, $render = true)

@@ -74,30 +74,28 @@ class QueryService
     public function recordExists($id,$passive = false){
         $model = $this->getModel()->find($id);
         if(is_null($model)){
-                return false;
+            return false;
         }
-       return true;
+        return true;
     }
 
     public function csvFormat($csv_data){
-            $response = response()->streamDownload(
+        $response = response()->streamDownload(
             function () use ($csv_data) {
-                // A resource pointer to the output stream for writing the CSV to
                 $handle = fopen('php://output', 'w');
-                    fputcsv($handle, array_keys($csv_data[0]->getAttributes()));
+                fputcsv($handle, array_keys($csv_data[0]->getAttributes()));
                 foreach ($csv_data as $row) {
                     fputcsv($handle, $row->getAttributes());
                 }
-
                 fclose($handle);
             },
             $this->entity."_".date("D-M-d_Y-G-i").".csv",
-            [
+            [ //Headers
                 'Content-type'        => 'text/csv',
                 'Content-Disposition' => 'attachment; filename=members.csv'
             ]
         );
-            return $response;
+        return $response;
     }
 
 }
