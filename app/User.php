@@ -8,6 +8,9 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    protected $table = "users";
+    protected $primaryKey = "id";
+    public $timestamps = true;
     use Notifiable;
 
     /**
@@ -37,8 +40,4 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-
-    public function chatMessages(){
-        return $this->hasMany(ChatMessages::class);
-    }
 }

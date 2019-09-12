@@ -16,7 +16,9 @@ Route::get('/', function () {
 });
 
 Route::get('/test', function () {
-    return view('test');
+	$model 	 = new App\ChatMessages;
+	dd($model);
+	return response()->json($model);
 });
 
 Auth::routes();

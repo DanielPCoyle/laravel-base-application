@@ -47,7 +47,7 @@ class BaseController extends Controller
     public function getSingle($entity,$id, Request $request)
     {
         if($this->query->recordExists($id)){
-            $entity = $this->query->fields($request, $entity)->where("id",$id)->first();
+            $entity = $this->query->getModel()->find($id);
             return response()->json($entity,200);
         } else{
             return response()->json(["event"=>"get","entity"=>$entity,"id"=>$id,"message"=>"$entity with the id #$id does not exists"],404);
@@ -62,6 +62,8 @@ class BaseController extends Controller
      */
     public function post($entity,Request $request)
     {
+        //TODO: associativeField()->create
+        //https://www.lynda.com/Laravel-tutorials/Saving-relationships/5043098/2223543-4.html?srchtrk=index%3a2%0alinktypeid%3a2%0aq%3alaravel%0apage%3a1%0as%3arelevance%0asa%3atrue%0aproducttypeid%3a2
         $model = $this->query->getModel();
         $create = $model->create($request->input());
         if(is_null($create->id)){
@@ -79,6 +81,8 @@ class BaseController extends Controller
      */
     public function put($entity,$id,Request $request)
     {
+        //TODO: associativeField()->sync
+        //https://www.lynda.com/Laravel-tutorials/Saving-relationships/5043098/2223543-4.html?srchtrk=index%3a2%0alinktypeid%3a2%0aq%3alaravel%0apage%3a1%0as%3arelevance%0asa%3atrue%0aproducttypeid%3a2
         if($this->query->recordExists($id)){
             $model = $this->query->getModel()->find($id);
             $model->fill($request->input());
@@ -97,6 +101,8 @@ class BaseController extends Controller
      */
     public function delete($entity,$id)
     {
+        //TODO: associativeField()->detatch()
+        //https://www.lynda.com/Laravel-tutorials/Saving-relationships/5043098/2223543-4.html?srchtrk=index%3a2%0alinktypeid%3a2%0aq%3alaravel%0apage%3a1%0as%3arelevance%0asa%3atrue%0aproducttypeid%3a2
         if($this->query->recordExists($id)){
             $model = $this->query->getModel()->find($id)->delete();
             return response()->json(["event"=>"delete_success","entity"=>$entity,"id"=>$id],200);
