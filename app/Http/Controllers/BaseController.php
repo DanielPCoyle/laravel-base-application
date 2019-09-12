@@ -21,13 +21,21 @@ class BaseController extends Controller
         $this->query = new QueryService($request,$path[0]);
     }
 
-    public function get($entity,Request $request)
+    public function get($entity,Request $request, $render = true)
     {
         if(!empty($request->all())){           
            $this->query->fields();
            $this->query->where("where");
            $this->query->where("orWhere");
        }
+
+       if($request->input("format")){
+        $methodName = $request->input("format")."Format";
+        if(method_exists($this->query, $methodName)){
+            return $this->query->$methodName($this->query->result()->data);
+        }
+       }
+
        return response()->json($this->query->result(),200);
    } 
 
@@ -98,8 +106,7 @@ class BaseController extends Controller
     }
 
     public function test($entity){
-        $test =  $this->query->tableToClass($entity);
-        $test = new $test();
-        response()->json($test->get());
+        $csv_data = $this->query->getModel()->get();
     }
+
 }

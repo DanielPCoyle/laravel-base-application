@@ -13,7 +13,6 @@ class QueryService
 
     public function __construct(Request $request, $entity){
         $this->request = $request;
-        $this->entity = $entity;
         $model = $this->tableToClass($entity);
         $this->model = new $model();
     }
@@ -68,6 +67,7 @@ class QueryService
         if (!$capitalizeFirstCharacter) {
             $str[0] = strtolower($str[0]);
         }
+        $str = explode(".",$str)[0];
         return "App\\".$str;
     }
 
@@ -77,6 +77,27 @@ class QueryService
                 return false;
         }
        return true;
+    }
+
+    public function csvFormat($csv_data){
+            $response = response()->streamDownload(
+            function () use ($csv_data) {
+                // A resource pointer to the output stream for writing the CSV to
+                $handle = fopen('php://output', 'w');
+                    fputcsv($handle, array_keys($csv_data[0]->getAttributes()));
+                foreach ($csv_data as $row) {
+                    fputcsv($handle, $row->getAttributes());
+                }
+
+                fclose($handle);
+            },
+            $this->entity."_".date("D-M-d_Y-G-i").".csv",
+            [
+                'Content-type'        => 'text/csv',
+                'Content-Disposition' => 'attachment; filename=members.csv'
+            ]
+        );
+            return $response;
     }
 
 }
