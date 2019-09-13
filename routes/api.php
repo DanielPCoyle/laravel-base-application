@@ -12,17 +12,24 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/{entity}', 'BaseController@get')->name('get');
+//Special
+Route::get('/{entity}/set/{field}/{value}/{id}', 'BaseController@set')->name('set'); //GOOD
+Route::put('/{entity}/set/{field}/{value}/{id?}', 'BaseController@set')->name('set'); //GOOD
 
-Route::get('/{entity}/{id}', 'BaseController@getSingle')->name('get_single'); 
+Route::get('/{entity}/math/{field}/{math}/{id}', 'BaseController@math')->name('math'); //GOOD
+Route::put('/{entity}/math/{field}/{math}/{id?}', 'BaseController@math')->name('math'); //GOOD
 
-Route::post('/{entity}', 'BaseController@post')->name('post'); 
+Route::get('/{entity}/copy/{id}', 'BaseController@copy')->name('copy');
+Route::post('/{entity}/copy/{id?}', 'BaseController@copy')->name('copy'); 
+Route::copy('/{entity}/copy/{id}', 'BaseController@copy')->name('copy'); 
 
-Route::put('/{entity}/{id}', 'BaseController@put')->name('put'); 
-
-Route::delete('/{entity}/{id}', 'BaseController@delete')->name('delete'); 
+//Default
+Route::get('/{entity}', 'BaseController@get')->name('get'); //GOOD
+Route::get('/{entity}/{id?}', 'BaseController@get')->name('get_single'); //GOOD
+Route::post('/{entity}', 'BaseController@post')->name('post'); //GOOD
+Route::put('/{entity}/{id?}', 'BaseController@put')->name('put'); //GOOD
+Route::delete('/{entity}/{id?}', 'BaseController@delete')->name('delete'); //GOOD
