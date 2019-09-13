@@ -6,13 +6,23 @@ use App\Base;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Services\QueryService;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Support\Facades\Auth;
 
 class BaseController extends Controller
 {
+    use DispatchesJobs, ValidatesRequests;
     private $query;
-    public function __construct(Request $request){
+    public function __construct(Request $request, Guard $auth){
         $path = explode("/",trim($request->getPathInfo(),"/"));
         $this->query = new QueryService($request,$path[1]);
+        if(Auth::user()){
+            dd("logged in");
+        }else{
+            dd("logged out");
+        }
     }
 
     public function get($entity,Request $request, $id = null){
@@ -165,11 +175,11 @@ class BaseController extends Controller
                 200);
         }
         return response()->json([
-                "status"=>"success",
-                "event"=>"delete_success",
-                "entity"=>$entity,
-                "data"=> ["deleted" => $deleted]],
-                200);
+            "status"=>"success",
+            "event"=>"delete_success",
+            "entity"=>$entity,
+            "data"=> ["deleted" => $deleted]],
+            200);
 
     }
 
@@ -208,7 +218,4 @@ class BaseController extends Controller
                 200);
         }
     } 
-
-
 }
-

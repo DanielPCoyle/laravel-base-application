@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Http\Request;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -12,8 +11,9 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+    return response()->json($request->user());
 });
 
 //Special
@@ -23,11 +23,14 @@ Route::put('/{entity}/set/{field}/{value}/{id?}', 'BaseController@set')->name('s
 Route::get('/{entity}/math/{field}/{math}/{id}', 'BaseController@math')->name('math'); //GOOD
 Route::put('/{entity}/math/{field}/{math}/{id?}', 'BaseController@math')->name('math'); //GOOD
 
-Route::get('/{entity}/copy/{id}', 'BaseController@copy')->name('copy');
-Route::post('/{entity}/copy/{id?}', 'BaseController@copy')->name('copy'); 
-Route::copy('/{entity}/copy/{id}', 'BaseController@copy')->name('copy'); 
+// Route::get('/{entity}/copy/{id}', 'BaseController@copy')->name('copy');
+// Route::post('/{entity}/copy/{id?}', 'BaseController@copy')->name('copy'); 
+// Route::copy('/{entity}/copy/{id}', 'BaseController@copy')->name('copy'); 
 
 //Default
+Route::get('/',function(Request $request){
+    return response()->json("Welcome to the API!");
+});
 Route::get('/{entity}', 'BaseController@get')->name('get'); //GOOD
 Route::get('/{entity}/{id?}', 'BaseController@get')->name('get_single'); //GOOD
 Route::post('/{entity}', 'BaseController@post')->name('post'); //GOOD
