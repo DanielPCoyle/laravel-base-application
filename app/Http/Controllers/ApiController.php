@@ -11,7 +11,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Support\Facades\Auth;
 
-class BaseController extends Controller
+class ApiController extends Controller
 {
     use DispatchesJobs, ValidatesRequests;
     private $query;
@@ -19,10 +19,11 @@ class BaseController extends Controller
         $path = explode("/",trim($request->getPathInfo(),"/"));
         $this->query = new QueryService($request,$path[1]);
         if(Auth::user()){
-            dd("logged in");
+            $status = "logged out";
         }else{
-            dd("logged out");
+            $status = "logged in";
         }
+        response()->json(["auth_status" => $status]);
     }
 
     public function get($entity,Request $request, $id = null){
@@ -88,10 +89,11 @@ class BaseController extends Controller
     }
 
     public function put($entity,$id = null,Request $request){
+        dd($request);
         $data = $this->query->dataSetUp($id,$request);
         $updated = [];
         foreach ($data as $item) {
-            $passId = $multi ? $item['id'] : $id;
+            $passId = ($id > 0) ? $id : $item['id'];
             $recordCheck = $this->query->recordExistsCheck($passId);
             if($recordCheck !== true){
                 return $recordCheck;
@@ -217,5 +219,5 @@ class BaseController extends Controller
                 "data"=>['updated'=>$updated]],
                 200);
         }
-    } 
+    }
 }

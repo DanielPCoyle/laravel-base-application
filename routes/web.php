@@ -21,4 +21,8 @@ Route::get('/test', function () {
 	return response()->json($model);
 });
 
+
+Route::post('/session/{variable?}','SessionController@setSession')->name("set_session");
+Route::get('/session/{variable?}','SessionController@getSession')->name("get_session");
+
 Auth::routes();
