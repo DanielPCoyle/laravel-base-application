@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 
 Route::get('/', function(Request $request){
 	return response()->json(["api"=>"active"]);
-});
+})->middleware("auth:api");
 
 Route::get('/{entity}/set/{field}/{value}/{id}', 'ApiController@set')->name('set'); //GOOD
 Route::put('/{entity}/set/{field}/{value}/{id?}', 'ApiController@set')->name('set'); //GOOD
