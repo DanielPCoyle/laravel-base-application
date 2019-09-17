@@ -30,19 +30,20 @@ class BaseTest extends TestCase
 
     public function testGetSingle()
     {
+      $id = $this->testPost(true);
     //Changed this to seeded data for testing. 
-       $response = $this->json('GET', '/api/chat_messages/2');
+       $response = $this->json('GET', '/api/chat_messages/'.$id);
        $response ->assertStatus(200);
 
         $response
             ->assertStatus(200)
             ->assertJsonStructure(["id","user_id","message","created_at","updated_at","deleted_at"]); 
+      $this->testDelete($id);
     }
 
     public function testGetPagination(){
        $response = $this->json('GET', '/api/chat_messages?limit=10');
        $response ->assertStatus(200);
-
        $response
             ->assertJsonStructure(["data","pagination"]);
     }

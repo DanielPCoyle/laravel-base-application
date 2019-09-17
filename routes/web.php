@@ -15,10 +15,19 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/test', function () {
-	$model 	 = new App\ChatMessages;
-	dd($model);
-	return response()->json($model);
+Route::get('/clients', function () {
+    return view('clients');
+});
+
+Route::get('/redirect', function () {
+    $query = http_build_query([
+        'client_id' => '1',
+        'redirect_uri' => 'http://localhost:8080/callback',
+        'response_type' => 'code',
+        'scope' => '',
+    ]);
+
+    return redirect('/oauth/authorize?'.$query);
 });
 
 

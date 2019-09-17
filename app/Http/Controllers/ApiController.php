@@ -17,13 +17,7 @@ class ApiController extends Controller
     private $query;
     public function __construct(Request $request, Guard $auth){
         $path = explode("/",trim($request->getPathInfo(),"/"));
-        $this->query = new QueryService($request,$path[1]);
-        if(Auth::user()){
-            $status = "logged out";
-        }else{
-            $status = "logged in";
-        }
-        response()->json(["auth_status" => $status]);
+        $this->query = isset($path[1]) ?  new QueryService($request,$path[1])   : null;
     }
 
     public function get($entity,$id = null, Request $request){
