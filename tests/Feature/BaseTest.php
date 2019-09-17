@@ -16,10 +16,7 @@ class BaseTest extends TestCase
     public function testApiIsLive()
     {
        $response = $this->json('GET', '/api');
-
-        $response
-            ->assertStatus(200)
-            ->assertJson(['status' => "active"]); 
+       $response->assertStatus(200); 
     }
 
     public function testGet()

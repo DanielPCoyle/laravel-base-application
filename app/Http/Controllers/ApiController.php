@@ -26,15 +26,46 @@ class ApiController extends Controller
         response()->json(["auth_status" => $status]);
     }
 
-    public function get($entity,Request $request, $id = null){
+    public function get($entity,$id = null, Request $request){
+
+        if($id == "fields"){
+            return $this->fields($entity, $request);
+        }
+        if($this->query->getModel() === false){
+           return response()->json([
+        "status"=>"fail",
+        "event"=>"create_failure",
+        "entity"=>$entity,
+        "message"=> "$entity do not exists in this system"],
+        404);
+        }
+
+        $assoc = [];
+        if($request->query("assoc") == 1){
+            $fillable = $this->query->getModel()->getFillable();
+            $classMethods = get_class_methods($this->query->getModel());
+            foreach ($fillable as $key => $value) {
+                $check = trim($value,"_id");
+                if(in_array($check,$classMethods) === true){
+                    $assoc[] = $check;
+                }
+            }
+        }
         if($id !== null){
             $recordCheck = $this->query->recordExistsCheck($id); 
             if($recordCheck !== true){
                 return $recordCheck;
             } 
-            $entity = $this->query->getModel()->find($id);
-            return response()->json($entity,200);
+            $result = $this->query->getModel()->find($id);
+            $transformer = "\App\Http\Resources\\".explode("\\",$this->query->tableToClass($entity))[1];
+            if(class_exists($transformer)){
+                $result = new $transformer($result);
+            }
+            return response()->json($result,200);
         }
+
+        
+        
 
         if(!empty($request->all())){           
             $this->query->fields();
@@ -45,10 +76,11 @@ class ApiController extends Controller
         if($request->input("format")){
             $methodName = $request->input("format")."Format";
             if(method_exists($this->query, $methodName)){
-                return $this->query->$methodName($this->query->result()->data);
+                return $this->query->$methodName($this->query->result($assoc)->data);
             }
         }
-        return response()->json($this->query->result(),200);
+        $result = $this->query->result($assoc);
+        return response()->json($result,200);
     } 
 
     public function post($entity,Request $request){
@@ -219,5 +251,16 @@ class ApiController extends Controller
                 "data"=>['updated'=>$updated]],
                 200);
         }
+    }
+
+    public function fields($entity,Request $request){
+        $fields = [];
+        $settings = $this->query->getModel()->getFillable(); //Making use of Eloquent
+        $columns = DB::getDoctrineSchemaManager()
+            ->listTableDetails("users");
+        foreach ($settings as $key => $value) {
+            $fields[$value] = json_decode($columns->getColumn($value)->getComment());
+        }
+        return response()->json($fields,200);
     }
 }

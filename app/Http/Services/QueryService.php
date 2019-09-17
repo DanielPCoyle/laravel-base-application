@@ -13,9 +13,14 @@ class QueryService
     public $model;
 
     public function __construct(Request $request, $entity){
+        $this->entity = $entity;
         $this->request = $request;
         $model = $this->tableToClass($entity);
-        $this->model = new $model();
+        if(class_exists($model)){
+            $this->model = new $model();
+        } else{
+            $this->model = false;
+        }
     }
 
     public function where($func){
@@ -49,9 +54,10 @@ class QueryService
         return $this->model->paginate($this->request->query("limit"));
     }
 
-    public function result(){
+    public function result($assoc = []){
         $result = new \StdClass();
-        $result->data = $this->model->get();
+        $result->entity = $this->entity;
+        $result->data = $this->model->with($assoc)->get();
         if($this->request->query("limit")){
             $result->pagination = $this->pagination();
         }
@@ -76,7 +82,11 @@ class QueryService
 
 
     public function getModel(){
-        return $this->model;
+        if($this->model !== false){
+            return $this->model;
+        } else{
+            return false;
+        }
     }
 
     public function tableToClass($string, $capitalizeFirstCharacter = true) 

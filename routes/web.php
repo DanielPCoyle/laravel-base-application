@@ -24,5 +24,6 @@ Route::get('/test', function () {
 
 Route::post('/session/{variable?}','SessionController@setSession')->name("set_session");
 Route::get('/session/{variable?}','SessionController@getSession')->name("get_session");
-
+Route::get('/file/{fileName}','ContentController@download')->name("download");
+Route::post('/file/{fileName?}','ContentController@upload')->name("upload");
 Auth::routes();

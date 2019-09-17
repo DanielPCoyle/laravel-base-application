@@ -12,12 +12,12 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return response()->json($request->user());
-});
 
 //Special
 
+Route::get('/', function(Request $request){
+	return response()->json(["api"=>"active"]);
+});
 
 Route::get('/{entity}/set/{field}/{value}/{id}', 'ApiController@set')->name('set'); //GOOD
 Route::put('/{entity}/set/{field}/{value}/{id?}', 'ApiController@set')->name('set'); //GOOD
@@ -31,9 +31,7 @@ Route::put('/{entity}/math/{field}/{math}/{id?}', 'ApiController@math')->name('m
 // Route::copy('/{entity}/copy/{id}', 'ApiController@copy')->name('copy'); 
 
 //Default
-Route::get('/',function(Request $request){
-    return response()->json(["status"=>"active"]);
-});
+
 Route::get('/{entity}', 'ApiController@get')->name('get'); //GOOD
 Route::get('/{entity}/{id?}', 'ApiController@get')->name('get_single'); //GOOD
 Route::post('/{entity}', 'ApiController@post')->name('post'); //GOOD
