@@ -11,6 +11,8 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Support\Facades\Auth;
 
+
+//TODO: Write test validation.
 class ApiController extends Controller
 {
     use DispatchesJobs, ValidatesRequests;
@@ -57,9 +59,6 @@ class ApiController extends Controller
             }
             return response()->json($result,200);
         }
-
-        
-        
 
         if(!empty($request->all())){           
             $this->query->fields();
