@@ -20,7 +20,7 @@ Route::get('/', function(Request $request){
 })->middleware("auth:api");
 
 
-Route::get('/test', 'SheetsController@writeModelFile')->name('sheets'); //GOOD
+Route::get('/test', 'SheetsController@do')->name('sheets'); //GOOD
 Route::get('/{entity}/set/{field}/{value}/{id}', 'ApiController@set')->name('set'); //GOOD
 Route::put('/{entity}/set/{field}/{value}/{id?}', 'ApiController@set')->name('set'); //GOOD
 

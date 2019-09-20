@@ -11,78 +11,41 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Services\SheetsService;
 
 class SheetsController extends Controller
 {
-	public function writeModelFile(){
-		$path = app_path().'/ChatRooms.php';
+
+	private $sheets;
+	public function __construct(){
+		$this->sheets = new SheetsService;
+	}
+
+	public function do($file = "test"){
+		$this->writeMigrationFile($file);
+		$this->writeModelFile($file);
+	}
+	
+
+	public function writeMigrationFile($name = "test"){
+		$fileName = date("Y_m_d_his")."_".$name.".php";
+		$path = app_path();
+		$path =str_replace("/app", "", $path);
+		$path = $path."/database/migrations/".$fileName;
 		$h = fopen($path, "w");
 		$data = new \StdClass();
-		$data->fillable = ["user_id"];
-		$data->belongsTo = ["user_id"];
-		$data->hasOne = ["user_id"];
-		fwrite($h, $this->modelContent("ABC",$data));
+		fwrite($h, $this->sheets->migrationContent($name,$data));
 		fclose($h);
 	}
 
-	public function modelContent($className,$data = null){
-		$content = <<< EOT
-<?php
-namespace App;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
-class $className extends Model
-{
-EOT;
-			foreach(["fillable"] as $type){
-				$content .= $this->fieldTypes($type,$data);
-			}
-
-
-			foreach (["hasOne","hasMany","belongsTo","belongsToMany","hasOneThrough","hasManyThrough"] as  $type) {
-				$content .= $this->relationships($type,$data);
-			}
-
-			$content .= "\n}";
-			return $content;
-		}
-
-
-		public function fieldTypes($type,$data){
-			$content = "";
-			if(!is_null($data)){
-				if(isset($data->$type) && count($data->$type) > 0){
-					$array = "\"".join("','",$data->$type)."\"";
-					$content .= "\n\t\$fillable = [".$array."];";
-				}
-			}
-			return $content;
-		}
-
-		public function relationships($type,$data){
-			$content = "";
-			if(isset($data->$type) && count($data->$type) > 0){
-				foreach ($data->$type as $field) {
-					$field = str_replace("_id", "", $field);
-					$field = str_replace('_', ' ',$field);
-					$field = ucwords($field);
-					$func = lcfirst($field);
-					$class = "App\\".str_replace(" ","",$field);
-
-					$content .= <<< EOT
-
-
-	public function $func(){
-		return \$this->$type("$class");
+	public function writeModelFile($name = "test"){
+		$path = app_path()."/$name.php";
+		$h = fopen($path, "w");
+		$data = new \StdClass();
+		$data->belongsTo = ["user_id"];
+		fwrite($h, $this->sheets->modelContent("ABC",$data));
+		fclose($h);
 	}
 
-EOT;
-				}
-			}
-			return $content;
-		}
-
-	}
+}
 
