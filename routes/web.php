@@ -10,23 +10,11 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-class Dynamic {
-  protected $methods = array();
-  public static function
-
-registerMethod($method) {
-    self::$methods[] = $method;
-  }
-}
-
 
 Route::get('/', function () {
-    dd(ViewReturn());
 });
 
-function ViewReturn(){
-	return "ABC";
-}
+
 
 Route::get('/clients', function () {
     return view('clients');

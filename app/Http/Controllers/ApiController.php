@@ -23,9 +23,8 @@ class ApiController extends Controller
     }
 
     public function get($entity,$id = null, Request $request){
-
-        if($id == "fields"){
-            return $this->fields($entity, $request);
+        if(method_exists($this, $id)){
+            return $this->$id($entity, $request);
         }
         if($this->query->getModel() === false){
            return response()->json([
@@ -246,13 +245,27 @@ class ApiController extends Controller
         }
     }
 
-    public function fields($entity,Request $request){
+    public function form_fields($entity,Request $request){
         $fields = [];
         $settings = $this->query->getModel()->getFillable(); //Making use of Eloquent
         $columns = DB::getDoctrineSchemaManager()
-            ->listTableDetails("users");
+            ->listTableDetails($entity);
         foreach ($settings as $key => $value) {
-            $fields[$value] = json_decode($columns->getColumn($value)->getComment());
+            $fields[$value] = json_decode($columns->getColumn($value)->getComment())->form ?? null;
+        }
+        if(json_decode($request->input("render"))){
+            return view("test",["fields" => $fields, "entity" => $entity]);
+        }
+        return response()->json($fields,200);
+    }
+
+    public function list_fields($entity,Request $request){
+        $fields = [];
+        $settings = $this->query->getModel()->getFillable(); //Making use of Eloquent
+        $columns = DB::getDoctrineSchemaManager()
+            ->listTableDetails($entity);
+        foreach ($settings as $key => $value) {
+            $fields[$value] = json_decode($columns->getColumn($value)->getComment())->list ?? null;
         }
         return response()->json($fields,200);
     }

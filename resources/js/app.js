@@ -41,6 +41,12 @@ Vue.component(
     require('./components/passport/PersonalAccessTokens.vue').default
 );
 
+Vue.component(
+    'fields',
+    require('./components/Fields.vue').default
+);
+
+
 import Vue from 'vue'
 import BootstrapVue from 'bootstrap-vue'
 
