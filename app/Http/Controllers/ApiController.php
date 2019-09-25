@@ -94,7 +94,11 @@ class ApiController extends Controller
             if (class_exists($transformer)) {
                 $result = new $transformer($result);
             }
-            return response()->json($result, 200);
+            return response()->json([
+            "status" => "success",
+            "entity" => $entity,
+            "event" => "get_success",
+            "data"=>$result], 200);
         }
         if (!empty($request->all())) {           
             $this->query->fields();
@@ -108,7 +112,11 @@ class ApiController extends Controller
             }
         }
         $result = $this->query->result($assoc);
-        return response()->json($result, 200);
+        return response()->json([
+            "status" => "success",
+            "entity" => $entity,
+            "event" => "get_success",
+            "data"=>$result], 200);
     } 
 
     /**
@@ -381,7 +389,13 @@ class ApiController extends Controller
             );
             return $view;
         }
-        return response()->json($fields, 200);
+
+        return response()->json([
+                "status"=>"success",
+                "entity"=>$entity,
+                "event"=>"get_list_meta",
+                "data" =>$fields,
+            ], 200);
     }
     /**
      * Returns meta data for listing items.
@@ -404,7 +418,12 @@ class ApiController extends Controller
             )
             ->list ?? null;
         }
-        return response()->json($fields, 200);
+        return response()->json(
+            [
+                "status"=>"success",
+                "event"=>"get_list_meta",
+                "data" =>$fields,
+            ], 200);
     }
 
     public function fixtures($entity,$count = 1){
@@ -415,7 +434,11 @@ class ApiController extends Controller
         $class = get_class($this->query->getModel());
 
         $result = factory($class, (Integer) $count)->create();
-        // $this->query->getModel()->save($result);
-        return response()->json($result,200);
+        return response()->json(
+            [
+            "status" => "success",
+            "event" => "fixtures_created",
+            "data" => $result,
+            ],200);
     }
 }

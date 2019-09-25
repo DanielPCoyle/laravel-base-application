@@ -202,7 +202,7 @@ class QueryService
         $model = $this->getModel()->find($id);
         if (is_null($model)) {
             return response()->json(
-                ["event"=>"set_success",
+                ["event"=>"get_fail",
                 "entity"=>$this->entity,
                 "id"=>$id,
                 "message"=>$this->entity." with the id #$id does not exists"],

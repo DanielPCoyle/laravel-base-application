@@ -11,15 +11,13 @@
 |
 */
 
-	Route::get('/', function () {
-	    return view('welcome');
-	});
-
-
+Route::get('/', function () {
+    return view('welcome');
+});
 
 Route::get('/clients', function () {
     return view('clients');
-});
+})->middleware("auth");
 
 Route::get('/redirect', function () {
     $query = http_build_query([

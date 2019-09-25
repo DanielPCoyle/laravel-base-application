@@ -21,7 +21,7 @@ class CreateItemTable extends Migration
 					$table->string('name',255)->nullable()->comment('{"form":{"label":"Name","sort":999,"key":"name","data_type":"string","type":"text","value":""},"list":{"label":"Name","key":"name","data_type":"string"}}');
 					$table->decimal('price',10,0)->nullable()->comment('{"form":{"label":"Price","sort":999,"key":"price","data_type":"decimal","value":"","type":"number"},"list":{"label":"Price","key":"price","data_type":"decimal"}}');
 					$table->text('description')->nullable()->comment('{"form":{"label":"Description","sort":999,"key":"description","data_type":"text","type":"textarea","source_view":false,"value":"","rows":"10","required":true},"list":{"label":"Description","key":"description","data_type":"text"}}');
-					$table->bigInteger('category_id')->nullable()->unsigned()->comment('{"form":{"label":"Category id","sort":999,"key":"categoryId","data_type":"bigInteger","value":""},"list":{"label":"Category id","key":"categoryId","data_type":"bigInteger"}}');
+					$table->bigInteger('category_id')->nullable()->unsigned()->comment('{"form":{"label":"Category id","sort":999,"key":"categoryId","data_type":"bigInteger","value":"","type":"select"},"list":{"label":"Category id","key":"categoryId","data_type":"bigInteger"}}');
 
 					$table->timestamps();			$table->unique('name');			
 			//foreign
@@ -57,10 +57,10 @@ class CreateItemTable extends Migration
 					$table->text('description')->nullable()->comment('{"form":{"label":"Description","sort":999,"key":"description","data_type":"text","type":"textarea","source_view":false,"value":"","rows":"10","required":true},"list":{"label":"Description","key":"description","data_type":"text"}}')->change();
 				}
 				if (!Schema::hasColumn($this->table, 'category_id')) {
-					$table->bigInteger('category_id')->nullable()->unsigned()->comment('{"form":{"label":"Category id","sort":999,"key":"categoryId","data_type":"bigInteger","value":""},"list":{"label":"Category id","key":"categoryId","data_type":"bigInteger"}}');
+					$table->bigInteger('category_id')->nullable()->unsigned()->comment('{"form":{"label":"Category id","sort":999,"key":"categoryId","data_type":"bigInteger","value":"","type":"select"},"list":{"label":"Category id","key":"categoryId","data_type":"bigInteger"}}');
 
 				} else {
-					$table->bigInteger('category_id')->nullable()->unsigned()->comment('{"form":{"label":"Category id","sort":999,"key":"categoryId","data_type":"bigInteger","value":""},"list":{"label":"Category id","key":"categoryId","data_type":"bigInteger"}}')->change();
+					$table->bigInteger('category_id')->nullable()->unsigned()->comment('{"form":{"label":"Category id","sort":999,"key":"categoryId","data_type":"bigInteger","value":"","type":"select"},"list":{"label":"Category id","key":"categoryId","data_type":"bigInteger"}}')->change();
 				}
 
 			if (!Schema::hasColumn($this->table, 'created_at')) {

@@ -18,13 +18,14 @@ if(app()->env == "production"){
 }
 
 Route::middleware($middleware)->group(function () {
-	Route::get('/test', 'SheetsController@do')->name('sheets'); //GOOD
+
 	Route::get('/{entity}/make/{count?}', 'ApiController@fixtures')->name('fixtures'); //GOOD
 	Route::get('/{entity}/set/{field}/{value}/{id}', 'ApiController@set')->name('set'); //GOOD
 	Route::put('/{entity}/set/{field}/{value}/{id?}', 'ApiController@set')->name('set'); //GOOD
 	Route::get('/{entity}/math/{field}/{math}/{id}', 'ApiController@math')->name('math'); //GOOD
 	Route::put('/{entity}/math/{field}/{math}/{id?}', 'ApiController@math')->name('math'); //GOOD
-	Route::get('/{entity}', 'ApiController@get')->name('get'); //GOOD
+
+	Route::get('get', array('middleware' => 'cors', 'uses' => 'ApiController@get'));
 	Route::get('/{entity}/{id?}', 'ApiController@get')->name('get_single'); //GOOD
 	Route::post('/{entity}', 'ApiController@post')->name('post'); //GOOD
 	Route::put('/{entity}/{id?}', 'ApiController@put')->name('put'); //GOOD
