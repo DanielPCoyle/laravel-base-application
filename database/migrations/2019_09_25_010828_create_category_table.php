@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateCategoryTable extends Migration
 {
-	public $table_name = "category";
+	public $table = "category";
 
     /**
      * Run the migrations.
@@ -15,44 +15,52 @@ class CreateCategoryTable extends Migration
      */
     public function up()
     {
-         if (!Schema::hasTable($this->table_name)) {
-			Schema::create($this->table_name, function (Blueprint $table) {
+         if (!Schema::hasTable($this->table)) {
+			Schema::create($this->table, function (Blueprint $table) {
 					$table->bigIncrements('id')->comment('{"form":{"label":"Id","sort":999,"key":"id","data_type":"bigIncrements","value":""},"list":{"label":"Id","key":"id","data_type":"bigIncrements"}}');
 					$table->string('name',255)->comment('{"form":{"label":"Name","sort":999,"key":"name","data_type":"string","type":"text","value":""},"list":{"label":"Name","key":"name","data_type":"string"}}');
+					$table->text('description')->nullable()->comment('{"form":{"label":"Description","sort":999,"key":"description","data_type":"text","type":"textarea","source_view":false,"value":""},"list":{"label":"Description","key":"description","data_type":"text"}}');
 
-			//Indexes
-		
+					$table->timestamps();			$table->unique('name');	
 			//foreign
-		
+			
 			});
 		}
-		else  if (Schema::hasTable($this->table_name)) {
-			Schema::table($this->table_name, function (Blueprint $table) {
+		else  if (Schema::hasTable($this->table)) {
+			Schema::table($this->table, function (Blueprint $table) {
 
-				if(!Schema::hasColumn($this->table_name, 'id')){
+				if (!Schema::hasColumn($this->table, 'id')) {
 					$table->bigIncrements('id')->comment('{"form":{"label":"Id","sort":999,"key":"id","data_type":"bigIncrements","value":""},"list":{"label":"Id","key":"id","data_type":"bigIncrements"}}');
 
 				} else {
 					$table->bigIncrements('id')->comment('{"form":{"label":"Id","sort":999,"key":"id","data_type":"bigIncrements","value":""},"list":{"label":"Id","key":"id","data_type":"bigIncrements"}}')->change();
 				}
-				if(!Schema::hasColumn($this->table_name, 'name')){
+				if (!Schema::hasColumn($this->table, 'name')) {
 					$table->string('name',255)->comment('{"form":{"label":"Name","sort":999,"key":"name","data_type":"string","type":"text","value":""},"list":{"label":"Name","key":"name","data_type":"string"}}');
 
 				} else {
 					$table->string('name',255)->comment('{"form":{"label":"Name","sort":999,"key":"name","data_type":"string","type":"text","value":""},"list":{"label":"Name","key":"name","data_type":"string"}}')->change();
 				}
+				if (!Schema::hasColumn($this->table, 'description')) {
+					$table->text('description')->nullable()->comment('{"form":{"label":"Description","sort":999,"key":"description","data_type":"text","type":"textarea","source_view":false,"value":""},"list":{"label":"Description","key":"description","data_type":"text"}}');
+
+				} else {
+					$table->text('description')->nullable()->comment('{"form":{"label":"Description","sort":999,"key":"description","data_type":"text","type":"textarea","source_view":false,"value":""},"list":{"label":"Description","key":"description","data_type":"text"}}')->change();
+				}
+
+			if (!Schema::hasColumn($this->table, 'created_at')) {
+				$table->timestamps();
+			}
+
+			$sm = Schema::getConnection()->getDoctrineSchemaManager();
+			$indexesFound = $sm->listTableIndexes($this->table);
 			//Indexes
 		
+			if(!array_key_exists($this->table.'_name_unique', $indexesFound)){	$table->unique('name')->change();
+			}	
 			//foreign
-		
+			
 			//Dropped Columns
-		
-	if(Schema::hasColumn($this->table_name, 'Items')){
-		$table->dropColumn('Items');
-	}
-	if(Schema::hasColumn($this->table_name, 'Category')){
-		$table->dropColumn('Category');
-	}
 
 			});
 		}
@@ -66,6 +74,6 @@ class CreateCategoryTable extends Migration
     public function down()
     {
         
-				Schema::dropIfExists('category');
+		Schema::dropIfExists('category');
     }
 }

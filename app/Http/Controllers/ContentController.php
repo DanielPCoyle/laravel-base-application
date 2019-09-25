@@ -13,25 +13,27 @@ use Illuminate\Support\Facades\Auth;
 
 class ContentController extends Controller
 {
-   public function upload(Request $request)
-   {
-    $data = [];
-    if($request->isMethod('post')){
-      $path = $request->file('file')->store('testing');
-      return response()->json(['path' => $path], 200);
+    public function upload(Request $request)
+    {
+        $data = [];
+        if($request->isMethod('post')) {
+            $path = $request->file('file')->store('testing');
+            return response()->json(['path' => $path], 200);
+        }
     }
-  }
   
-  public function download($file, Request $request)
-  {
-    $filePath = storage_path('app/'.$file);
-    if(file_exists($filePath)){
-      return response()->download($filePath);
+    public function download($file, Request $request)
+    {
+        $filePath = storage_path('app/'.$file);
+        if(file_exists($filePath)) {
+            return response()->download($filePath);
+        }
+        return response()->json(
+            [
+            "status"=>"fail",
+            "event"=>"download_fail",
+            "message"=> "File '$file' does not exists in this system"],
+            404
+        );
     }
-    return response()->json([
-      "status"=>"fail",
-      "event"=>"download_fail",
-      "message"=> "File '$file' does not exists in this system"],
-      404);
-  }
 }

@@ -14,7 +14,6 @@ class SheetTest extends TestCase
      */
     public function testSheetExecutes()
     {
-        $response = $this->get('/api/test');
-        $response->assertStatus(200);
+        $test = $this->artisan('sheets:sync')->expectsOutput("Sync has finished, 2 tables updated or created");
     }
 }

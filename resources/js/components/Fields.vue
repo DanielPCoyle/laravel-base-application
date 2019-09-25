@@ -205,6 +205,7 @@
 <template v-if='item.type == "textarea"'>
     <b-form-textarea
     v-model="values[item.key]"
+    :rows="item.rows || 2"
     :ref="item.key"
     :class="item.key"
     :placeholder="item.placeholder"

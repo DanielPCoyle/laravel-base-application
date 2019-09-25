@@ -2187,6 +2187,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "fields",
@@ -82080,6 +82081,7 @@ var render = function() {
                                   refInFor: true,
                                   class: item.key,
                                   attrs: {
+                                    rows: item.rows || 2,
                                     placeholder: item.placeholder,
                                     required: item.required,
                                     disabled: item.disabled,

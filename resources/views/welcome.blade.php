@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Chat</title>
+        <title>Sheets API</title>
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
         <style>
             html, body {
@@ -76,9 +76,10 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Larvel REST API
+                    SHEETS API
                 </div>
                 <div>by Dan Coyle</div>
+                <div><a target="_blank" href='https://docs.google.com/spreadsheets/d/{{env("PROJECT_SHEET_ID")}}/edit#gid=0'>Open Project Sheet</a></div>
             </div>
         </div>
     </body>

@@ -10,8 +10,8 @@ class logger
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Closure                 $next
      * @return mixed
      */
     public function handle($request, Closure $next)
@@ -31,14 +31,15 @@ class logger
     public function terminate($request,$response)
     {
         Log::debug($response->status());
-        if($request->method() == "GET"){
-            if($response->original !== null && 
-                (isset($response->original->entity))){
+        if($request->method() == "GET") {
+            if($response->original !== null  
+                && (isset($response->original->entity))
+            ) {
                 Log::debug("Entity ".$response->original->entity." | Event get_data");       
             }
         }
         
-        if(is_array($response->original) && isset($response->original['event'])){
+        if(is_array($response->original) && isset($response->original['event'])) {
             Log::debug("Entity ".$response->original['entity']." | Event ".$response->original['event']);       
         }
     }

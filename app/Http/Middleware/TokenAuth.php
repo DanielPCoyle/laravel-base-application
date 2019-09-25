@@ -9,16 +9,16 @@ class TokenAuth
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Closure                 $next
      * @return mixed
      */
     public function handle($request, Closure $next)
     {
         $token = $request->header("X-API-TOKEN");
         $checkValue = "ABC";
-        if($checkValue != $token){
-            abort(401,'Auth Token not found');
+        if($checkValue != $token) {
+            abort(401, 'Auth Token not found');
         }
         return $next($request);
     }

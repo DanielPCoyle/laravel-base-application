@@ -12,21 +12,23 @@ use Illuminate\Support\Facades\Auth;
 
 class SessionController extends Controller
 {
-    public function setSession($variable =null , $value = null, Request $request){
-        if($variable){
-        	$request->session()->put($variable,$value);
+    public function setSession($variable =null , $value = null, Request $request)
+    {
+        if($variable) {
+            $request->session()->put($variable, $value);
         } else{
-        	dump($request);
+            dump($request);
         }
         return response()->json($request->session()->all());
     } 
 
-    public function getSession($variable = null,Request $request){
-    	if($variable){
-	        $return = $request->session()->has($variable) ?  $request->session()->get($variable) : null;
-    	} else{
-    		$return = $request->session()->all();
-    	}
+    public function getSession($variable = null,Request $request)
+    {
+        if($variable) {
+            $return = $request->session()->has($variable) ?  $request->session()->get($variable) : null;
+        } else{
+            $return = $request->session()->all();
+        }
         return response()->json($return);
     }
 }

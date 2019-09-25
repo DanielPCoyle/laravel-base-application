@@ -5,22 +5,21 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Http\Controllers\SheetsController;
 
-class SheetSync extends Command
+class SheetsRollBack extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'sheets:sync {--force}';
+    protected $signature = 'sheets:rollback';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'This will sync your migration files with your Google Sheets file.';
-    private $sheets;
+    protected $description = 'Return to a previous sync.';
 
     /**
      * Create a new command instance.
@@ -40,12 +39,14 @@ class SheetSync extends Command
      */
     public function handle()
     {
-         $answer = $this->ask("This will run the artisan command 'migrate --force'. Are you sure you want to sync sheet with project?");
-         if(trim(strtolower($answer)) == "y" || trim(strtolower($answer)) == "yes"){
-            $force = $this->option('force');
-            $this->line($this->sheets->do(null,$force));
-         } else {
-            $this->line("Sync canceled");
-         }
+        $lastSync = app_path()."/database/syncs/";
+        $lastSync =str_replace("/app", "", $lastSync);
+        $lastSync =str_replace("\\app", "", $lastSync);
+        $files = scandir($lastSync);
+        array_shift($files);
+        array_shift($files);
+        $file = $this->choice("Please choose a previous sync to revert to:",$files);
+        $this->line("Rolling back to ".$file);
+        $this->line($this->sheets->do($file));
     }
 }
