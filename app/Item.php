@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Item extends Model
 {
     protected $table = "item";
- protected $fillable = ['name','price','description','category_id'];
+ protected $fillable = ['name','description','category_id','price','test'];
  protected $hidden = [''];
  protected $casts = [''];
  protected $dates = [''];

@@ -12,7 +12,7 @@ class SheetSync extends Command
      *
      * @var string
      */
-    protected $signature = 'sheets:sync {--force}';
+    protected $signature = 'sheets:sync {--force} {--yes}';
 
     /**
      * The console command description.
@@ -40,12 +40,17 @@ class SheetSync extends Command
      */
     public function handle()
     {
-         $answer = $this->ask("This will run the artisan command 'migrate --force'. Are you sure you want to sync sheet with project?");
-         if(trim(strtolower($answer)) == "y" || trim(strtolower($answer)) == "yes"){
+         if($this->option('yes')){
             $force = $this->option('force');
             $this->line($this->sheets->do(null,$force));
-         } else {
-            $this->line("Sync canceled");
+         }else{
+             $answer = $this->ask("This will run the artisan command 'migrate --force'. Are you sure you want to sync sheet with project?");
+             if(trim(strtolower($answer)) == "y" || trim(strtolower($answer)) == "yes" ){
+                $force = $this->option('force');
+                $this->line($this->sheets->do(null,$force));
+             } else {
+                $this->line("Sync canceled");
+             }
          }
     }
 }

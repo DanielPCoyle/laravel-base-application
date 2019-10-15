@@ -53,7 +53,11 @@ class QueryService
         foreach ($where as $key => $value) {
             $value = explode(",", $value);
             if (count($value) == 2) {
-                $whereArray[] = [$key,$value[0],$value[1]];
+                if(strtolower($value[0]) == "like"){
+                    $whereArray[] = [$key,$value[0],"%".$value[1]."%"];
+                } else{
+                    $whereArray[] = [$key,$value[0],$value[1]];
+                }
             } else {
                 $whereArray[] = [$key,"=",$value[0]];
             }

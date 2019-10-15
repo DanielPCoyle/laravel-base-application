@@ -1,16 +1,6 @@
 <?php
 
 use Illuminate\Http\Request;
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
 
 $middleware = [];
 if(app()->env == "production"){
@@ -18,16 +8,17 @@ if(app()->env == "production"){
 }
 
 Route::middleware($middleware)->group(function () {
-
-	Route::get('/{entity}/make/{count?}', 'ApiController@fixtures')->name('fixtures'); //GOOD
-	Route::get('/{entity}/set/{field}/{value}/{id}', 'ApiController@set')->name('set'); //GOOD
-	Route::put('/{entity}/set/{field}/{value}/{id?}', 'ApiController@set')->name('set'); //GOOD
-	Route::get('/{entity}/math/{field}/{math}/{id}', 'ApiController@math')->name('math'); //GOOD
-	Route::put('/{entity}/math/{field}/{math}/{id?}', 'ApiController@math')->name('math'); //GOOD
+	Route::get('/entity-list', 'ApiController@entityList')->name('navigation');
+	Route::get('/{entity}/make/{count?}', 'ApiController@fixtures')->name('fixtures'); 
+	Route::get('/{entity}/set/{field}/{value}/{id}', 'ApiController@set')->name('set'); 
+	Route::put('/{entity}/set/{field}/{value}/{id?}', 'ApiController@set')->name('set'); 
+	Route::get('/{entity}/math/{field}/{math}/{id}', 'ApiController@math')->name('math'); 
+	Route::put('/{entity}/math/{field}/{math}/{id?}', 'ApiController@math')->name('math'); 
 
 	Route::get('get', array('middleware' => 'cors', 'uses' => 'ApiController@get'));
-	Route::get('/{entity}/{id?}', 'ApiController@get')->name('get_single'); //GOOD
-	Route::post('/{entity}', 'ApiController@post')->name('post'); //GOOD
-	Route::put('/{entity}/{id?}', 'ApiController@put')->name('put'); //GOOD
-	Route::delete('/{entity}/{id?}', 'ApiController@delete')->name('delete'); //GOOD
+	Route::get('/{entity}/{id?}', 'ApiController@get')->name('get_single'); 
+	Route::post('/{entity}', 'ApiController@post')->name('post'); 
+	Route::put('/{entity}/{id?}', 'ApiController@put')->name('put'); 
+	Route::post('/{entity}/{id?}', 'ApiController@put')->name('put'); 
+	Route::delete('/{entity}/{id?}', 'ApiController@delete')->name('delete'); 
 });

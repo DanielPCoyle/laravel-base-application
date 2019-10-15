@@ -31,6 +31,7 @@ class SheetsController extends Controller
     public function __construct()
     {
     	$this->sheets = new SheetsService;
+        $this->timestamp = date("Y_m_d_his")."_";
     }
 
     /**
@@ -40,8 +41,8 @@ class SheetsController extends Controller
      */
     public function do($rollback = null,$force = false)
     {
-        if(app()->env !== "development"){
-            dd('You must be in a development enviorment to sync with your project sheet.');
+        if(app()->env == "production"){
+            dd('You must be in a development or testing enviorment to sync with your project sheet.');
         }
     	$client = $this->getGoogleClient();
     	$lastSyncData = "";
@@ -55,7 +56,7 @@ class SheetsController extends Controller
     	$syncDir = app_path()."\\database\\syncs\\";
     	$syncDir =str_replace("/app", "", $syncDir);
     	$syncDir =str_replace("\\app", "", $syncDir);
-    	$timestamp = date("Y_m_d_his")."_";
+    	$timestamp = $this->timestamp;
     	$currentSync = $syncDir.$timestamp."SheetSync.json";
     	$prev = scandir($syncDir);
     	array_shift($prev);
@@ -269,7 +270,7 @@ EOT;
     public function writeMigrationFile($name = "test",$data)
     {
     	$fileWoTime = "create_".strtolower($name)."_table.php";
-    	$fileName = date("Y_m_d_his")."_".$fileWoTime;
+    	$fileName = $this->timestamp.$fileWoTime;
     	$path = app_path();
     	$path =str_replace("/app", "", $path);
     	$path =str_replace("\\app", "", $path);

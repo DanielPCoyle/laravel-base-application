@@ -6,33 +6,36 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 Use App\Http\Services\QueryService;
 
+/**
+ * @group api
+ */
 class ApiTest extends TestCase
 {
-    /**
-     * A test to see if the fields variable works.
-     *
-     * @return void
-     */
-    public function testApiIsLive()
-    {
-        $response = $this->json('GET', '/api');
-        $response->assertStatus(200); 
-    }
 
+    /**
+     * @return [type] [description]
+     */
     public function testGet()
     {
-        $response = $this->json('GET', '/api/chat_messages');
 
+        
+        $response = $this->json('GET', '/api/chat_messages');
         $response
             ->assertStatus(200)
-            ->assertJsonStructure(["data"]); 
+            ->assertJsonStructure(["status","entity","data"]); 
     }
 
+    /**
+     * @group active
+     * 
+     * @return [type] [description]
+     */
     public function testGetSingle()
     {
         $id = $this->testPost(true);
         //Changed this to seeded data for testing. 
         $response = $this->json('GET', '/api/chat_messages/'.$id);
+        dd($response);
         $response ->assertStatus(200);
 
         $response

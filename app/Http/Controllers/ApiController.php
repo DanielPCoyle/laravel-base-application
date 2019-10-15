@@ -48,12 +48,13 @@ class ApiController extends Controller
         }
     }
     /**
+     * Retrieve entity record(s).
      * Endpoint: /api/{entity}/
      * Endpoint with Filters: /api/{entity}?filters...
      * 
-     * @param [type]  $entity  [description]
-     * @param Request $request [description]
-     * @param [type]  $id      [description]
+     * @param [type]  $entity  The name of the database table
+     * @param Request $request The HTTP request
+     * @param [type]  $id      The entity record number
      * 
      * @return [type]           [description]
      */
@@ -120,12 +121,12 @@ class ApiController extends Controller
     } 
 
     /**
-     * [post description]
+     * Create a new entity record. 
      * 
-     * @param [type]  $entity  [description]
-     * @param Request $request [description]
+     * @param string  $entity  The name of the database table
+     * @param Request $request The HTTP request
      * 
-     * @return [type]           [description]
+     * @return object           The results of the post request
      */
     public function post($entity,Request $request)
     {
@@ -169,58 +170,48 @@ class ApiController extends Controller
     }
 
     /**
-     * [put description]
+     * Update a specific entity record.
      * 
-     * @param [type]  $entity  [description]
-     * @param Request $request [description]
-     * @param [type]  $id      [description]
+     * @param string  $entity  The name of the database table
+     * @param Request $request The HTTP request
+     * @param integer  $id      The entity record number
      * 
      * @return [type]           [description]
      */
     public function put($entity,Request $request,$id = null)
     {
-        $data = $this->query->dataSetUp($id, $request);
-        $updated = [];
-        foreach ($data as $item) {
-            $passId = ($id > 0) ? $id : $item['id'];
-            $recordCheck = $this->query->recordExistsCheck($passId);
-            if ($recordCheck !== true) {
-                return $recordCheck;
-            }
-            $model = $this->query->getModel()->find($passId)
-                ->fill($item);
-            $model->save();
-            $updated[] = $passId;
-        }
-        if (count($data) == 1) {
-            return response()->json(
-                [
-                "status"=>"success",
-                "event"=>"update_success",
-                "entity"=>$entity,
-                "data"=>$model],
-                200
-            );
-        }
+        $model = $this->query->getModel()->find($id);
+        $model->update($request->all());
+
+        // if (count($data) == 1) {
+        //     return response()->json(
+        //         [
+        //         "status"=>"success",
+        //         "event"=>"update_success",
+        //         "entity"=>$entity,
+        //         "data"=>$model],
+        //         200
+        //     );
+        // }
         return response()->json(
             [
             "status"=>"success",
             "event"=>"update_multi_success",
             "entity"=>$entity,
-            "data"=>["updated" =>$updated]
+            "data"=>["data" =>$model]
             ],
             200
         );
     }
 
     /**
-     * [set description]
+     * Set values to specific fields on specific records
      * 
-     * @param [type]  $entity  [description]
-     * @param [type]  $field   [description]
-     * @param [type]  $value   [description]
-     * @param Request $request [description]
-     * @param [type]  $id      [description]
+     * @param [type]  $entity  The name of the database table
+     * @param [type]  $field   The name of the property of the you are updating. 
+     * @param [type]  $value   The data to update with.
+     * @param Request $request The HTTP request
+     * @param [type]  $id      the entity record number.
      *
      * @return [type] [<description>]
      */
@@ -265,9 +256,9 @@ class ApiController extends Controller
     /**
      * Deletes records from data base
      * 
-     * @param [type]  $entity  [description]
-     * @param Request $request [description]
-     * @param [type]  $id      [description]
+     * @param [type]  $entity  The name of the database table
+     * @param Request $request The HTTP request
+     * @param [type]  $id      The entity record number
      * 
      * @return [type]           [description]
      */
@@ -306,10 +297,10 @@ class ApiController extends Controller
     /**
      * Used to perform basic math operations via a request.
      * 
-     * @param [type] $entity  [description]
+     * @param [type] $entity  The name of the database table
      * @param [type] $field   [description]
-     * @param [type] $request [description]
-     * @param [type] $id      [description]
+     * @param [type] $request The HTTP request
+     * @param [type] $id      The entity record number
      * 
      * @return [type]          [description]
      */
@@ -424,6 +415,21 @@ class ApiController extends Controller
                 "event"=>"get_list_meta",
                 "data" =>$fields,
             ], 200);
+    }
+
+    public function entityList(){
+        $path = app_path();
+        $dir = scandir($path);
+        $result = [];
+        foreach ($dir as $file) {
+            if(strpos($file, ".php") !== false){
+                $file = explode(".",$file)[0];
+                if($file !== "User"){
+                    $result[] = $file;
+                }
+            }
+        }
+        return response()->json($result,200);
     }
 
     public function fixtures($entity,$count = 1){

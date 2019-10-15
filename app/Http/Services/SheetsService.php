@@ -437,10 +437,6 @@ EOT;
      */
     public function migrationDropColumn($data)
     {
-        // $content .="\n\tif (Schema::hasColumn(\$this->table, '".
-        // $key."')) {\n";
-        // $content .= "\t\t\$table->dropColumn('".$key."');";
-        // $content .= "\n\t}";
         $content = "";
         $syncDir = app_path()."\\database\\syncs\\";
         $syncDir =str_replace("/app", "", $syncDir);
@@ -460,14 +456,16 @@ EOT;
                 $item = reset($data);
                 $entity = $item->entity;
                 $field = $item->field;
-                    
-                foreach ($lastSyncData->$entity as $key => $needle) {
-                    $check = $needle->field;
-                    if(!isset($data[$check])){
-                        $content .="\n\t\t\t\tif (Schema::hasColumn(\$this->table, '".
-                        $key."')) {\n";
-                        $content .= "\t\t\t\t\t\$table->dropColumn('".$needle->field."');";
-                        $content .= "\n\t\t\t\t}";
+                
+                if(isset($lastSyncData->$entity)){    
+                    foreach ($lastSyncData->$entity as $key => $needle) {
+                        $check = $needle->field;
+                        if(!isset($data[$check])){
+                            $content .="\n\t\t\t\tif (Schema::hasColumn(\$this->table, '".
+                            $key."')) {\n";
+                            $content .= "\t\t\t\t\t\$table->dropColumn('".$needle->field."');";
+                            $content .= "\n\t\t\t\t}";
+                        }
                     }
                 }
             }
@@ -477,14 +475,14 @@ EOT;
 
 
     /**
-     * [sheetData description]
+     *  Pulls data from a specificed sheet in a google sheets work book. 
      * 
      * @param [type] $client  [description]
-     * @param string $sheetId [description]
-     * @param string $sheet   [description]
-     * @param string $ranges  [description]
+     * @param string $sheetId The google workbook sheet ID
+     * @param string $sheet   The name of the sheet you are pulling data from.
+     * @param string $ranges  The ranges you need to pull data from
      * 
-     * @return [type]          [description]
+     * @return array
      */
     public function sheetData($client, string $sheetId,
         string $sheet,$ranges = "A1:DF300"
@@ -523,33 +521,33 @@ EOT;
     }
 
     /**
-     * [fieldCase description]
+     * Will convest a string into an underscore or camel cased string. 
      * 
-     * @param [type] $fieldName [description]
-     * @param string $type      [description]
+     * @param string $string The string to be converted. 
+     * @param string $type      determine if the string is underscore or camel cased. 
      * 
-     * @return [type]            [description]
+     * @return string
      */
-    public function fieldCase($fieldName,$type = "underscore")
+    public function fieldCase($string,$type = "underscore")
     {
         $pattern = '/(.*?[a-z]{1})([A-Z]{1}.*?)/';
         if ($type == "underscore") {
             $replace = '${1}_${2}';
-            return strtolower(preg_replace($pattern, $replace, $fieldName));
+            return strtolower(preg_replace($pattern, $replace, $string));
         }
         if ($type == "camelCase") {
-            $fieldName = ucwords(str_replace("_", " ", $fieldName));
-            $fieldName = lcfirst(str_replace(" ", "", $fieldName));
-            return $fieldName;
+            $string = ucwords(str_replace("_", " ", $string));
+            $string = lcfirst(str_replace(" ", "", $string));
+            return $string;
         }
     }
 
     /**
-     * [defaultValueCheck description]
+     * Set's default values for fields when they are empty. 
      * 
-     * @param [type] $obj [description]
+     * @param obj $row Spreadsheet row data 
      * 
-     * @return [type]      [description]
+     * @return object
      */
     protected function defaultValueCheck($obj)
     {
@@ -575,11 +573,10 @@ EOT;
     }
 
     /**
-     * [fieldDataFormat description]
+     * returns an array of spread sheet data formatted and defaults filled in.
      * 
-     * @param [type] $data [description]
-     * 
-     * @return [type]       [description]
+     * @param array $data Data pulled from your project's sheet.
+     * @return array  
      */
     public function fieldDataFormat($data)
     {
@@ -598,35 +595,35 @@ EOT;
      * 
      * @return [type]        [description]
      */
-    protected function defaultformmeta($field)
+    protected function defaultformmeta($row)
     {
         $meta = [];
         $pattern = '/(.*?[a-z]{1})([A-Z]{1}.*?)/';
         $replace = '${1} ${2}';
-        $meta['label'] = ucfirst(preg_replace($pattern, $replace, $field->field));
+        $meta['label'] = ucfirst(preg_replace($pattern, $replace, $row->field));
         $meta['label'] = str_replace("_", " ", $meta['label']);
         $meta['sort'] = 999;
-        $meta['key'] =  $this->fieldCase($field->field, "camelCase");
-        $meta['data_type'] = $field->type;
-        if ($field->type == "integer") {
+        $meta['key'] =  $this->fieldCase($row->field, "camelCase");
+        $meta['data_type'] = $row->type;
+        if ($row->type == "integer") {
             $meta['value'] = 0;
             $meta['type'] = "number";
         }
-        if (in_array($field->type, ["array","ManyToMany","ManyToOne","OneToMany"])) {
+        if (in_array($row->type, ["array","ManyToMany","ManyToOne","OneToMany"])) {
             $meta['value'] = (array) [];
             $meta['type'] = "select";
         }
-        if ($field->type == "text") {
+        if ($row->type == "text") {
             $meta['type'] = "textarea";
             $meta['source_view'] = false;
         }
-        if ($field->type == "string") {
+        if ($row->type == "string") {
             $meta['type'] = "text";
         }
-        if ($field->type == "datetime") {
+        if ($row->type == "datetime") {
             $meta['type'] = "datetime";
         }
-        if ($field->type == "boolean") {
+        if ($row->type == "boolean") {
             $meta['type'] = "boolean";
         } else {
             $meta['value'] = (string) '';
@@ -637,15 +634,15 @@ EOT;
     /**
      * [formMetaBuild description]
      * 
-     * @param object $field [description]
+     * @param object $row [description]
      * 
      * @return [type]        [description]
      */
-    protected function formMetaBuild(object $field)
+    protected function formMetaBuild(object $row)
     {
-        $meta = $this->defaultformmeta($field);
-        if (!empty($field->choices)) {
-            $choices = explode(",", $field->choices);
+        $meta = $this->defaultformmeta($row);
+        if (!empty($row->choices)) {
+            $choices = explode(",", $row->choices);
             foreach ($choices as $choice) {
                 if (strpos($choice, ":")> 0) {
                     $choice = explode(":", $choice);
@@ -655,12 +652,12 @@ EOT;
                 }
             }
         }
-        if (!empty($field->targetEntity)) {
+        if (!empty($row->targetEntity)) {
             $meta['options'] = [];
-            $meta['target'] = $field->targetEntity;
+            $meta['target'] = $row->targetEntity;
         }
 
-        foreach ($field as $attrKey => $attrVal) {
+        foreach ($row as $attrKey => $attrVal) {
             if (in_array("formmeta", explode("_", $attrKey))) {
                 $attrKey = (string) explode("formmeta", $attrKey)[1];
                 $attrKey = trim($attrKey, "_"); 
@@ -674,33 +671,33 @@ EOT;
                 } 
             }
         }
-        if (!empty(trim($field->description))) {
+        if (!empty(trim($row->description))) {
             array_unshift($contents, "* ".$field->description);
         }
         return $meta;
     }
 
     /**
-     * [listMetaBuild description]
+     * Organizes fields prefixed with "listmeta_" into an array
      * 
-     * @param object $field [description]
+     * @param object $row The row from the spread sheet
      * 
-     * @return [type]        [description]
+     * @return array
      */
-    protected function listMetaBuild(object $field)
+    protected function listMetaBuild(object $row)
     {
         $meta = [];
         $pattern = '/(.*?[a-z]{1})([A-Z]{1}.*?)/';
         $replace = '${1} ${2}';
-        $meta['label'] = ucfirst(preg_replace($pattern, $replace, $field->field));
+        $meta['label'] = ucfirst(preg_replace($pattern, $replace, $row->field));
         $meta['label'] = str_replace("_", " ", $meta['label']);
-        $meta['key'] =  $this->fieldCase($field->field, "camelCase");
-        $meta['data_type'] = $field->type;
-        if (!empty($field->targetEntity)) {
+        $meta['key'] =  $this->fieldCase($row->field, "camelCase");
+        $meta['data_type'] = $row->type;
+        if (!empty($row->targetEntity)) {
             $meta['options'] = [];
-            $meta['target'] = $field->targetEntity;
+            $meta['target'] = $row->targetEntity;
         }
-        foreach ($field as $attrKey => $attrVal) {
+        foreach ($row as $attrKey => $attrVal) {
             if (in_array("tableMeta", explode("_", $attrKey))) {
                 $attrKey = (string) explode("tableMeta", $attrKey)[1];
                 $attrKey = trim($attrKey, "_"); 
@@ -714,7 +711,7 @@ EOT;
                 } 
             }
         }
-        if (!empty(trim($field->description))) {
+        if (!empty(trim($row->description))) {
             array_unshift($contents, "* ".$field->description);
         }
         return $meta;
