@@ -3,6 +3,9 @@
 /public/storage
 /storage/*.key
 /database/syncs/
+/database/factories/
+/database/migrations/
+/app/models/api
 /vendor
 .env
 .env.backup

@@ -28,6 +28,24 @@ class SheetsService
     "dates"
     ];
 
+    public function tableName($className){
+        $tableName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $className));
+        return $tableName;
+    }
+
+    public function className($string, $capitalizeFirstCharacter = false) 
+    {
+        $str = str_replace('_', '', ucwords($string, '_'));
+
+        if ($capitalizeFirstCharacter == false) {
+            $str = lcfirst($str);
+        } else{
+            $str = ucfirst($str);
+        }
+
+        return $str;
+    }
+
     /**
      * [modelContent description]
      * 
@@ -38,18 +56,18 @@ class SheetsService
      */
     public function modelContent($className,$data = null)
     {
-        $tableName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $className));
+        $tableName = $this->tableName($className);
         $content 
             = <<< EOT
 <?php
-namespace App;
+namespace App\Models\Api;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class $className extends Model
 {
-    protected \$table = "$tableName";
+ protected \$table = "$tableName";
 EOT;
         foreach ($this->fieldAttributesArray as $type) {
             $content .= $this->fieldAttributes($type, $data);
@@ -133,7 +151,7 @@ EOT;
      */
     public function migrationContent($name,$data)
     {
-        $tableName = strtolower($name);
+        $tableName = $this->tableName($name);
         $name = str_replace('_', ' ', $name);
         $name = ucwords($name);
         $name = str_replace(" ", "", $name);
@@ -310,9 +328,11 @@ EOT;
         } else if (strtolower($field->type) == "enum" 
             || strtolower($field->type) == "set"
         ) {
-            $choices = "'".str_replace(",", "','", $field->choices)."'";
-            $content .= "\t\t\$table->".$field->type
-            ."('".$field->field."',[".$choices."])";
+            if(isset($field->choices)){
+                $choices = "'".str_replace(",", "','", $field->choices)."'";
+                $content .= "\t\t\$table->".$field->type
+                ."('".$field->field."',[".$choices."])";
+            }
         } else {
                 $content .= "\t\t\$table->".$field->type."('".$field->field."')";
         }
@@ -337,24 +357,20 @@ EOT;
         "generatedAs"
             ] as $func) {
             if (isset($field->$func)) {
-                $content .="->$func('".$field->$func."')";
+                if(strtolower($field->$func) == "true" || strtolower($field->$func) == "false"){
+                    $content .="->$func(".strtolower($field->$func).")";
+                } else{
+                    $content .="->$func('".$field->$func."')";
+                }
             }
         }
 
-            $content .= "->comment('";
-            $content .= json_encode(
-                [
-                    "form"=>$this->formMetaBuild($field),
-                    "list"=>$this->listMetaBuild($field),
-                ]
-            );
-        $content .="')";
         if ($content != "") {
             if ($change === true) {
                 $content .= "->change()";
             }
-            return "\t\t".$content.";\n";
         }
+        return "\t\t".$content.";\n";
         return $content;
     }
 
@@ -427,6 +443,11 @@ EOT;
    
         return $content;
     }
+    public function syncDir(){
+        $syncDir = base_path()."\\database\\syncs\\";
+        $syncDir = str_replace('\\', "/", $syncDir);
+        return $syncDir;
+    }
 
     /**
      * [migrationDropColumn description]
@@ -438,9 +459,7 @@ EOT;
     public function migrationDropColumn($data)
     {
         $content = "";
-        $syncDir = app_path()."\\database\\syncs\\";
-        $syncDir =str_replace("/app", "", $syncDir);
-        $syncDir =str_replace("\\app", "", $syncDir);
+        $syncDir = $this->syncDir();      
         $prev = scandir($syncDir);
         array_shift($prev);
         array_shift($prev);
@@ -485,7 +504,7 @@ EOT;
      * @return array
      */
     public function sheetData($client, string $sheetId,
-        string $sheet,$ranges = "A1:DF300"
+        string $sheet,$ranges = "A1:DF900"
     ) {
         $service = new \Google_Service_Sheets($client);
         if ($ranges == "header") {
@@ -582,11 +601,13 @@ EOT;
     {
         $output = [];
         foreach ($data as $field) {
+            $field->entity = $this->className($field->entity,true);
             $output[$field->entity][$field->field] 
                 = $this->defaultValueCheck($field);
         }
         return $output;
     }
+
 
     public function routesDataFormat($data)
     {
@@ -739,4 +760,5 @@ EOT;
         }
         return $meta;
     }
+    
 }

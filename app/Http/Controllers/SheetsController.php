@@ -53,17 +53,18 @@ class SheetsController extends Controller
     		]
     	);
     	}
-    	$syncDir = $this->syncDir();
-    	$prev = scandir($syncDir);
+    	$syncsDir = $this->syncsDir();
+
+    	$prev = scandir($syncsDir);
     	array_shift($prev);
     	array_shift($prev);
     	if(count($prev) > 0){
-    		$previousSync = $syncDir.end($prev);
+    		$previousSync = $syncsDir.end($prev);
     	} else {
     		$previousSync = null;
     	}
     	if ($rollback !== null) {
-    		$data = json_decode(file_get_contents($syncDir.$rollback));
+    		$data = json_decode(file_get_contents($syncsDir.$rollback));
     	} else {
     		$data = $this->sheets->sheetData($client, env('PROJECT_SHEET_ID'), $sheet);
             $dataFormaterFunc = $sheet."DataFormat";
@@ -114,7 +115,7 @@ class SheetsController extends Controller
         $output = "Sync has finished,";
 
         $timestamp = $this->timestamp;
-        $currentSync = $this->syncDir().$timestamp."SheetSync.json";
+        $currentSync = $this->syncsDir().$timestamp."SheetSync.json";
         if(is_null($rollback)){
             if((json_encode($data) !== json_encode($lastSyncData)) || $force === true){
                 $h = fopen($currentSync, "w");
@@ -132,12 +133,21 @@ class SheetsController extends Controller
     }
 
 
-    public function syncDir(){
-        $syncDir = base_path()."\\database\\syncs\\";
-        if(strpos(strtolower(env("OS")), "windows") > -1){
-            $snycDir = str_replace('\\', "/", $syncDir);
-        }
-        return $syncDir;
+    public function syncsDir(){
+        $syncsDir = base_path()."\\database\\syncs\\";
+        $syncsDir = str_replace('\\', "/", $syncsDir);
+        return $syncsDir;
+    }
+
+    public function migrationsDir(){
+        $migrationsDir = base_path()."\\database\\migrations\\";
+        $migrationsDir = str_replace('\\', "/", $migrationsDir);
+        return $migrationsDir;
+    }
+    public function factoriesDir(){
+        $migrationsDir = base_path()."\\database\\factories\\";
+        $migrationsDir = str_replace('\\', "/", $migrationsDir);
+        return $migrationsDir;
     }
 
     /**
@@ -252,9 +262,7 @@ use Faker\Generator as Faker;
 });
 EOT;
 
-    		$factoryFile = app_path()."\\database\\factories\\$entity.php";
-    		$factoryFile =str_replace("/app", "", $factoryFile);
-    		$factoryFile =str_replace("\\app", "", $factoryFile);
+    		$factoryFile = $this->factoriesDir()."\\$entity.php";
     		$h = fopen($factoryFile , "w");
     		fwrite($h,$content);
     		fclose($h);
@@ -269,10 +277,7 @@ EOT;
      */
     public function deleteMigrationFile($entity)
     {
-    	$path = app_path();
-    	$path =str_replace("/app", "", $path);
-    	$path =str_replace("\\app", "", $path);
-    	$path = $path."\\database\\migrations\\";
+        $path = $this->migrationsDir();
     	$file = "create_".strtolower($entity)."_table.php";
     	foreach (scandir($path) as $f) {
     		if(strpos($f, $file) > -1) {
@@ -304,10 +309,7 @@ EOT;
      */
     public function deleteFactoryFile($entity)
     {
-    	$path = app_path()."\\".$entity.".php";
-    	$path =str_replace("/app", "", $path);
-    	$path =str_replace("\\app", "", $path);
-    	$path = $path."\\database\\factories\\";
+    	$path = $this->factoriesDir()."\\".$entity.".php";
     	if(file_exists($path)) {
     		unlink($path);
     	}
@@ -323,12 +325,9 @@ EOT;
      */
     public function writeMigrationFile($name = "test",$data)
     {
-    	$fileWoTime = "create_".strtolower($name)."_table.php";
+    	$fileWoTime = "create_".$this->sheets->tableName($name)."_table.php";
     	$fileName = $this->timestamp.$fileWoTime;
-    	$path = app_path();
-    	$path =str_replace("/app", "", $path);
-    	$path =str_replace("\\app", "", $path);
-    	$path = $path."/database/migrations/";
+    	$path = $this->migrationsDir();
     	$filePath = $path.$fileName;
     	foreach (scandir($path) as $key => $value) {
     		$fileName = explode("_", $value);
@@ -352,7 +351,7 @@ EOT;
      */
     public function writeModelFile($name,$data)
     {
-    	$path = app_path()."/$name.php";
+    	$path = app_path()."\\Models\\Api\\$name.php";
     	$h = fopen($path, "w");
     	fwrite($h, $this->sheets->modelContent($name, $data));
     	fclose($h);
