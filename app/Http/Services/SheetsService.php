@@ -578,13 +578,36 @@ EOT;
      * @param array $data Data pulled from your project's sheet.
      * @return array  
      */
-    public function fieldDataFormat($data)
+    public function fieldsDataFormat($data)
     {
         $output = [];
         foreach ($data as $field) {
             $output[$field->entity][$field->field] 
                 = $this->defaultValueCheck($field);
         }
+        return $output;
+    }
+
+    public function routesDataFormat($data)
+    {
+        $output = [];
+        $output["web"] = [];
+        $output["api"] = [];
+        foreach ($data as $route) {
+            $output[$route->route_type][$route->uri] = new \StdClass();
+            $output[$route->route_type][$route->uri]->method = $route->method;
+            $output[$route->route_type][$route->uri]->controller = $route->controller;
+            $output[$route->route_type][$route->uri]->action = $route->action;
+            $output[$route->route_type][$route->uri]->middleware = [];
+            foreach($route as $key => $val){
+                if(strpos($key, "mw@") == 0){
+                    $key = explode("@",$key);
+                    if(strtolower($val) == "true" && count($key) > 1){
+                        $output[$route->route_type][$route->uri]->middleware[] = $key[1];
+                    }
+                }
+            }
+        } 
         return $output;
     }
 

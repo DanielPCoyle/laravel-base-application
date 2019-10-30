@@ -39,7 +39,7 @@ class SheetsController extends Controller
      * 
      * @return [type] [description]
      */
-    public function do($rollback = null,$force = false)
+    public function do($sheet, $rollback = null,$force = false)
     {
         if(app()->env == "production"){
             dd('You must be in a development or testing enviorment to sync with your project sheet.');
@@ -53,11 +53,7 @@ class SheetsController extends Controller
     		]
     	);
     	}
-    	$syncDir = app_path()."\\database\\syncs\\";
-    	$syncDir =str_replace("/app", "", $syncDir);
-    	$syncDir =str_replace("\\app", "", $syncDir);
-    	$timestamp = $this->timestamp;
-    	$currentSync = $syncDir.$timestamp."SheetSync.json";
+    	$syncDir = $this->syncDir();
     	$prev = scandir($syncDir);
     	array_shift($prev);
     	array_shift($prev);
@@ -69,8 +65,13 @@ class SheetsController extends Controller
     	if ($rollback !== null) {
     		$data = json_decode(file_get_contents($syncDir.$rollback));
     	} else {
-    		$data = $this->sheets->sheetData($client, env('PROJECT_SHEET_ID'), "Fields");
-    		$data = $this->sheets->fieldDataFormat($data);
+    		$data = $this->sheets->sheetData($client, env('PROJECT_SHEET_ID'), $sheet);
+            $dataFormaterFunc = $sheet."DataFormat";
+            if(method_exists($this->sheets, $dataFormaterFunc)){
+    		  $data = $this->sheets->$dataFormaterFunc($data);
+            } else {
+                return "No data formatter method found for given sheet name";
+            }
     	}
         
         if ($previousSync !== null) {
@@ -78,38 +79,65 @@ class SheetsController extends Controller
         	if (trim($lastSyncData) !== "") {
         		$lastSyncData = json_decode($lastSyncData);
         	}
-    		if((json_encode($data) !== json_encode($lastSyncData)) || $force === true){
-    			foreach ($lastSyncData as $entity => $value) {
-    				if ((is_array($data) && !isset($data[$entity])) || !isset($data->$entity) ) {
-    					$this->deleteMigrationFile($entity);
-    					$this->deleteModelFile($entity);
-    					$this->deleteFactoryFile($entity);
-    				}
-    			}
 
-    			foreach ($data as $entity => $field) {
-    				$this->writeMigrationFile($entity, $field);
-    				$this->writeModelFile($entity, $field);
-    				$this->writeFactoryFile($entity, $field);
-    			}
-    		}
+            $updateFuncName = $sheet."Update";
+            if(method_exists($this, $updateFuncName)){
+              return $this->$updateFuncName($data,$lastSyncData,$force,$rollback);
+            } else{
+                return "No update method found for given sheet name";
+            }
+            return "issue occured";
     	}
+    }
 
-    	$output = "Sync has finished,";
-    	if(is_null($rollback)){
-    		if((json_encode($data) !== json_encode($lastSyncData)) || $force === true){
-    			$h = fopen($currentSync, "w");
-    			fwrite($h, json_encode($data));
-    			fclose($h);
-    			$output .= count((array) $data).
-    			" tables updated or created";
+    public function routesUpdate($data){
+        return $this->writeRoutesFiles($data);
+    }
+
+
+    public function fieldsUpdate($data,$lastSyncData,$force,$rollback){
+        $output = "";
+        if((json_encode($data) !== json_encode($lastSyncData)) || $force === true){
+            foreach ($lastSyncData as $entity => $value) {
+                if ((is_array($data) && !isset($data[$entity])) || !isset($data->$entity) ) {
+                    $this->deleteMigrationFile($entity);
+                    $this->deleteModelFile($entity);
+                    $this->deleteFactoryFile($entity);
+                }
+            }
+            foreach ($data as $entity => $field) {
+                $this->writeMigrationFile($entity, $field);
+                $this->writeModelFile($entity, $field);
+                $this->writeFactoryFile($entity, $field);
+            }
+        }
+        $output = "Sync has finished,";
+
+        $timestamp = $this->timestamp;
+        $currentSync = $this->syncDir().$timestamp."SheetSync.json";
+        if(is_null($rollback)){
+            if((json_encode($data) !== json_encode($lastSyncData)) || $force === true){
+                $h = fopen($currentSync, "w");
+                fwrite($h, json_encode($data));
+                fclose($h);
+                $output .= count((array) $data).
+                " tables updated or created";
                 Artisan::call('migrate', ["--force"=> true ]);
                 $output .="\n".Artisan::output();
-    		} else {
-    			$output .= "No changes made.";
-    		}
-    	}
-    	return $output;
+            } else {
+                $output .= "No changes made.";
+            }
+        }
+        return $output;
+    }
+
+
+    public function syncDir(){
+        $syncDir = base_path()."\\database\\syncs\\";
+        if(strpos(strtolower(env("OS")), "windows") > -1){
+            $snycDir = str_replace('\\', "/", $syncDir);
+        }
+        return $syncDir;
     }
 
     /**
@@ -163,6 +191,32 @@ class SheetsController extends Controller
     	return $client;
     }
     
+
+    public function writeRoutesFiles($data){
+        $output = "";
+        foreach ($data as $type => $routes) {
+            $fileName = $type.".php";
+            $filePath = base_path()."\\routes\\".$fileName;
+            $content = "<?php \n";
+            foreach ($routes as $route => $attr) {
+                $methods = strtolower($attr->method);
+                $methods = explode("|",$methods);
+                $methods = "'".join("','",$methods)."'";
+                $line = "\tRoute::match([$methods],'$route',\n\t\t[".
+                "'uses'  => '".$attr->controller."@".$attr->action."']\n\t)";
+                if(!empty($attr->middleware)){
+                    $line .= "->middleware(['".join("','",$attr->middleware)."'])";
+                }
+                $line .= ";\n\n";
+                $content .= $line;
+            }
+            $h = fopen($filePath, "w");
+            fwrite($h, $content);
+            fclose($h);
+           $output .= $fileName." Written\n";
+        }
+        return $output;
+    }
 
     public function fakerParse($value){
     	if(strpos(trim($value), "faker") !== false){

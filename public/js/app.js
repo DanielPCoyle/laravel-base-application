@@ -2189,6 +2189,9 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 
+
+var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "fields",
   props: ['fields', 'values'],
@@ -2219,8 +2222,9 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     orderedFields: function orderedFields() {
-      // var result = this._.sortBy(this.$props.fields, 'sort');
-      return this.$props.fields;
+      var result = _.sortBy(this.$props.fields, 'sort');
+
+      return result;
     },
     addRepeater: function addRepeater(key) {
       var comp = this;

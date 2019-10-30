@@ -10,6 +10,8 @@ $factory->define(Item::class, function (Faker $faker) {
 		"name" => $faker->name,
 		"description" => $faker->text,
 		"category_id" => rand(1,10),
+		"price" => $faker->randomNumber(2),
+		"active" => 1,
 		
 	];
 });

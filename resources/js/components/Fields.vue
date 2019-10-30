@@ -316,7 +316,7 @@ allowfullscreen>
 </template>
 <script>
     import { VueEditor } from "vue2-editor";
-
+    let _ = require('lodash');
     export default {
         name: "fields",
         props:['fields','values'],
@@ -349,8 +349,8 @@ allowfullscreen>
                 }
             },
             orderedFields: function () {
-                // var result = this._.sortBy(this.$props.fields, 'sort');
-                return this.$props.fields
+                var result = _.sortBy(this.$props.fields, 'sort');
+                return result
             },
             addRepeater: function(key){
                 var comp = this;
