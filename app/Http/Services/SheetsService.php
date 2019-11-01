@@ -46,6 +46,9 @@ class SheetsService
         return $str;
     }
 
+
+
+
     /**
      * [modelContent description]
      * 
@@ -56,17 +59,30 @@ class SheetsService
      */
     public function modelContent($className,$data = null)
     {
+        $formMeta = [];
+        $listMeta = [];
+        foreach ($data as $key => $obj) {
+            $formMeta[$key] = $this->formMetaBuild($obj);
+            $listMeta[$key] = $this->listMetaBuild($obj);
+        }
+        $formMeta = json_encode($formMeta);
+        $listMeta = json_encode($listMeta);
         $tableName = $this->tableName($className);
         $content 
             = <<< EOT
 <?php
 namespace App\Models\Api;
 
+use App\Models\BaseApiModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class $className extends Model
+class $className extends BaseApiModel
 {
+ public \$formMeta = '$formMeta';
+ 
+ public \$listMeta = '$listMeta';
+ 
  protected \$table = "$tableName";
 EOT;
         foreach ($this->fieldAttributesArray as $type) {
@@ -76,6 +92,7 @@ EOT;
         foreach ($this->relationships as  $type) {
             $content .= $this->relationships($type, $data);
         }
+
 
         $content .= "\n}";
         return $content;

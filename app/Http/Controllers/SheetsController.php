@@ -252,7 +252,7 @@ class SheetsController extends Controller
 
 /** @var \Illuminate\Database\Eloquent\Factory \$factory */
 
-use App\\$entity;
+use App\\Models\\Api\\$entity;
 use Faker\Generator as Faker;
 
 \$factory->define($entity::class, function (Faker \$faker) {

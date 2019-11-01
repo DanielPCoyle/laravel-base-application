@@ -11,6 +11,10 @@ use App\Base;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Services\QueryService;
+use App\Http\Services\Custom\GetService;
+use App\Http\Services\Custom\PostService;
+use App\Http\Services\Custom\PutService;
+use App\Http\Services\Custom\DeleteService;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Contracts\Auth\Guard;
@@ -28,6 +32,11 @@ class ApiController extends Controller
     //TODO: Write test validation.
     use DispatchesJobs, ValidatesRequests;
     protected $query;
+    protected $custom;
+    protected $getService;
+    protected $postService;
+    protected $putService;
+    protected $deleteService;
 
     /**
      * [__construct description]
@@ -46,6 +55,10 @@ class ApiController extends Controller
                 301
             );
         }
+        $this->getService = new GetService();
+        $this->postService = new PostService();
+        $this->putService = new PutService();
+        $this->deleteService = new DeleteService();
     }
     /**
      * Retrieve entity record(s).
@@ -58,10 +71,20 @@ class ApiController extends Controller
      * 
      * @return [type]           [description]
      */
-    public function get($entity, Request $request, $id = null)
+    public function get($instance = null, $entity, Request $request, $id = null)
     {
-        if (method_exists($this, $id) ) {
-            return $this->$id($entity, $request);
+
+        $className = explode("\\",$this->query->tableToClass($entity));
+        $customMethod = lcfirst(end($className));
+        if($instance !== null){
+            $instanceClassMethod = lcfirst($instance).ucfirst($customMethod); 
+            if (method_exists($this->getService, $instanceClassMethod) ) {
+                return $this->getService->$instanceClassMethod($entity, $request);
+            }
+        }
+
+        if (method_exists($this->getService, $customMethod) ) {
+            return $this->getService->$customMethod($entity, $request);
         }
         if ($this->query->getModel() === false) {
             return response()->json(
@@ -128,8 +151,14 @@ class ApiController extends Controller
      * 
      * @return object           The results of the post request
      */
-    public function post($entity,Request $request)
+    public function post($instance = null, $entity,Request $request)
     {
+        $className = explode("\\",$this->query->tableToClass($entity));
+        $customMethod = ucfirst(end($className));
+        if (method_exists($this->postService, $customMethod) ) {
+            return $this->postService->$customMethod($entity, $request);
+        }
+
         $data = $request->all();
         if (!is_array(json_decode($request->getContent())) ) {
             $data = [$data];
@@ -178,8 +207,13 @@ class ApiController extends Controller
      * 
      * @return [type]           [description]
      */
-    public function put($entity,Request $request,$id = null)
+    public function put($instance = null, $entity,Request $request,$id = null)
     {
+        $className = explode("\\",$this->query->tableToClass($entity));
+        $customMethod = ucfirst(end($className));
+        if (method_exists($this->putService, $customMethod) ) {
+            return $this->putService->$customMethod($entity, $request);
+        }
         $model = $this->query->getModel()->find($id);
         $model->update($request->all());
 
@@ -215,8 +249,13 @@ class ApiController extends Controller
      *
      * @return [type] [<description>]
      */
-    public function set($entity,$field, $value, Request $request,$id = null)
+    public function set($instance = null, $entity,$field, $value, Request $request,$id = null)
     {
+        $className = explode("\\",$this->query->tableToClass($entity));
+        $customMethod = "set".ucfirst(end($className));
+        if (method_exists($this->custom, $customMethod) ) {
+            return $this->custom->$customMethod($entity, $request);
+        }
         $data = $this->query->dataSetUp($id, $request);
         $columnCheck = $this->query->columnCheck($entity, $field);
         if ($columnCheck !== true) {
@@ -262,8 +301,13 @@ class ApiController extends Controller
      * 
      * @return [type]           [description]
      */
-    public function delete($entity, Request $request,$id = null)
+    public function delete($instance = null, $entity, Request $request,$id = null)
     {
+        $className = explode("\\",$this->query->tableToClass($entity));
+        $customMethod = ucfirst(end($className));
+        if (method_exists($this->deleteService, $customMethod) ) {
+            return $this->deleteService->$customMethod($entity, $request);
+        }
         $data = $this->query->dataSetUp($id, $request);
         $deleted = [];
         foreach ($data as $dId) {
@@ -304,7 +348,7 @@ class ApiController extends Controller
      * 
      * @return [type]          [description]
      */
-    public function math($entity,$field,$math, Request $request,$id = null)
+    public function math($instance = null, $entity,$field,$math, Request $request,$id = null)
     {
         $math = explode(",", $math);
         $data = $this->query->dataSetUp($id, $request);
@@ -351,31 +395,23 @@ class ApiController extends Controller
      * 
      * @return string          json_array
      */
-    public function formMeta($entity,Request $request)
+    public function meta($instance = null, $entity,$type, Request $request)
     {
-        $fields = [];
-        $settings = $this->query->getModel()->getFillable(); //Making use of Eloquent
-        $columns = DB::getDoctrineSchemaManager()
-            ->listTableDetails($entity);
-        foreach ($settings as $key => $value) {
-            $fields[$value] = json_decode(
-                $columns->getColumn($value)
-                    ->getComment()
-            )
-                ->form ?? null;
-        }
-        $fillable = $this->query->getModel()->getFillable();
-        $classMethods = get_class_methods($this->query->getModel());
-        foreach ($fillable as $key => $value) {
-            $check = trim($value, "_id");
-            if (in_array($check, $classMethods) === true) {
-                // dd($check);
+        $model = $this->query->getModel();
+        $meta = $model->getMeta($type);
+        if($request->input("fields")){
+            $fields = explode(",",$request->input("fields"));
+            foreach ($meta as $key => $value) {
+                if(!in_array($key, $fields)){
+                    unset($meta->$key);
+                }
             }
         }
+
         if (json_decode($request->input("render"))) {
             $view = view(
                 "form_meta", 
-                ["fields" => $fields, 
+                ["fields" => $meta, 
                     "entity" => $entity]
             );
             return $view;
@@ -385,54 +421,11 @@ class ApiController extends Controller
                 "status"=>"success",
                 "entity"=>$entity,
                 "event"=>"get_list_meta",
-                "data" =>$fields,
-            ], 200);
-    }
-    /**
-     * Returns meta data for listing items.
-     * 
-     * @param string  $entity  The name of the entity
-     * @param Request $request The HTTP request
-     * 
-     * @return array   "A json array of listmeta_ "
-     */
-    public function listMeta($entity,Request $request)
-    {
-        $fields = [];
-        $settings = $this->query->getModel()->getFillable();
-        $columns = DB::getDoctrineSchemaManager()
-            ->listTableDetails($entity);
-        foreach ($settings as $key => $value) {
-            $fields[$value] = json_decode(
-                $columns->getColumn($value)
-                    ->getComment()
-            )
-            ->list ?? null;
-        }
-        return response()->json(
-            [
-                "status"=>"success",
-                "event"=>"get_list_meta",
-                "data" =>$fields,
+                "data" =>$meta,
             ], 200);
     }
 
-    public function entityList(){
-        $path = app_path();
-        $dir = scandir($path);
-        $result = [];
-        foreach ($dir as $file) {
-            if(strpos($file, ".php") !== false){
-                $file = explode(".",$file)[0];
-                if($file !== "User"){
-                    $result[] = $file;
-                }
-            }
-        }
-        return response()->json($result,200);
-    }
-
-    public function fixtures($entity,$count = 1){
+    public function fixtures($instance = null, $entity,$count = 1){
         if(app()->env !== "development"){
             return response()->json('You must be in a development enviorment to sync with your project sheet.');
         }

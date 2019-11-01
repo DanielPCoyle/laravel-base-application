@@ -104,7 +104,7 @@ class QueryService
         $result->entity = $this->entity;
         $result->data = $this->model->with($assoc)->get();
         if ($this->request->query("limit")) {
-            $result->pagination = $this->pagination();
+            $result->data = $this->pagination();
         }
         return $result;
     }
@@ -163,7 +163,7 @@ class QueryService
             $str[0] = strtolower($str[0]);
         }
         $str = explode(".", $str)[0];
-        return "App\\".$str;
+        return "App\\Models\\Api\\".$str;
     }
 
     /**
